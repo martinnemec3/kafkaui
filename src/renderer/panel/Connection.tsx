@@ -20,9 +20,9 @@ const Connection = (props : ConnectionProps) => {
     const showConnect = useMemo(() => {
         return props.connectionData === undefined || props.connectionData.status === 'error'
     }, [props.connectionData]);
-    const topics = useMemo(() => {
-        return props.connectionData?.status === 'loaded' ? props.connectionData.topics.sort() :
-        (props.connectionData?.status === 'loading' && props.connectionData.previousTopics ? props.connectionData.previousTopics.sort() : null)
+    const topics : string[] = useMemo(() => {
+        return props.connectionData?.status === 'loaded' ? Object.keys(props.connectionData.topics).sort((t1, t2) => t1.localeCompare(t2, "en", {sensitivity: "base"})) :
+        (props.connectionData?.status === 'loading' && props.connectionData.previousTopics ? Object.keys(props.connectionData.previousTopics).sort() : null)
     }, [props.connectionData]);
 
     const onConnectionClick = (e : MouseEvent<HTMLElement>) => {

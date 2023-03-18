@@ -1,4 +1,3 @@
-import { GroupDescriptions, ITopicMetadata } from "kafkajs";
 
 export type ErrorMessageType = { result: "error", message: string };
 export type ListTopicsResponse = { result: "success", topics: string[] } | ErrorMessageType;
@@ -11,12 +10,24 @@ export type ClusterInfo = {
     controller: number;
     clusterId: string;
 }
-export type InstanceInfoResponse = { result: "success"; topics: string[]; clusterInfo: ClusterInfo } | ErrorMessageType;
-export type ListTopicMetadataResponse = { result: "success", topicMetadata: ITopicMetadata } | ErrorMessageType;
-export type GroupDescription = { groupId: string, userData: string }
+export type PartitionDetails = {
+    partitionErrorCode: number;
+    partitionId: number;
+    leader: number;
+    replicas: number[];
+    isr: number[];
+    offlineReplicas?: number[];
+}
+export type TopicDetails = { partitions: PartitionDetails[] }
+export type TopicsDetails = { [topic: string]: TopicDetails };
+export type InstanceInfoResponse = { result: "success"; topics: TopicsDetails; clusterInfo: ClusterInfo } | ErrorMessageType;
+export type GroupMember = { clientId: string, host: string }
+export type GroupDescription = { groupId: string, protocol: string, protocolType: string, state: string, members: GroupMember[] }
 export type ListGroupsResponse = { result: "success", groups: GroupDescription[] } | ErrorMessageType;
 export type StartConsumptionResponse = { result: "success", messages: KavkaMessage[] } | ErrorMessageType;
-export type RemoveTopicResponse = { result: "success" } | ErrorMessageType;
+export type CreateTopicData = { name: string, partitions?: number, replicationFactor?: number }
+export type CreateTopicResponse = { result: "success" } | ErrorMessageType;
+export type RemoveTopicsResponse = { result: "success" } | ErrorMessageType;
 export type KavkaMessage = { offset: number, partition: number, key: string, value: string }
 
 export type ChooseTopicResponse = { result: "success" } | { result: "error", message: string }
@@ -24,10 +35,10 @@ export type ChooseTopicResponse = { result: "success" } | { result: "error", mes
 export type Api = {
     getConfiguration: () => Promise<Configuration>,
     fetchInstanceInfo: (connectionId : string) => Promise<InstanceInfoResponse>,
-    listTopicMetadata: (connectionId : string, topicName : string) => Promise<ListTopicMetadataResponse>,
     listGroups: (connectionid : string, topicName : string) => Promise<ListGroupsResponse>,
     startConsumption: (connectionId : string, topicName : string) => Promise<StartConsumptionResponse>,
-    removeTopic: (connectionId : string, topicName : string) => Promise<RemoveTopicResponse>,
+    createTopic: (connectionId : string, data: CreateTopicData) => Promise<CreateTopicResponse>,
+    removeTopics: (connectionId : string, topics : string[]) => Promise<RemoveTopicsResponse>,
 }
 
 export type ConnectionDetails = {

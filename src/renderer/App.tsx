@@ -9,6 +9,7 @@ import NewConnection from './home/NewConnection';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faRefresh } from '@fortawesome/free-solid-svg-icons';
 import { ConnectionDataLoading, ConnectionsData } from './Types';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 type ChosenPage = { page: "home" | "new-connection" } |
                   { page: "connection", connectionId: string } |
@@ -70,6 +71,18 @@ const App = () => {
         return <span><FontAwesomeIcon icon={faRefresh} className="fa-spin" /></span>;
     }
 
+    const getClusterInfo = (connectionId: string) => {
+        const connectionData = connectionsData[connectionId];
+        return connectionData.status === 'loaded' ? connectionData.clusterInfo :
+          connectionData.status === 'loading' ? connectionData.previousClusterInfo : undefined;
+    }
+
+    const getTopicDetails = (connectionId: string, topic: string) => {
+        const connectionData = connectionsData[connectionId];
+        return connectionData.status === 'loaded' ? connectionData.topics[topic] :
+          connectionData.status === 'loading' ? connectionData.previousTopics?.[topic] || {partitions: []} : {partitions: []};
+    }
+
     return <div style={{display: 'flex', flexDirection: "row", height: "100vh"}}>
         <Panel 
             connections={configuration?.connections}
@@ -93,6 +106,8 @@ const App = () => {
             {chosenPage.page == "topic" ? <TopicDetail
                 key={ `detail-${chosenPage.connectionId}-${chosenPage.topicName}` }
                 topic={{connectionId: chosenPage.connectionId, topicName: chosenPage.topicName }}
+                topicDetails={getTopicDetails(chosenPage.connectionId, chosenPage.topicName)}
+                clusterInfo={getClusterInfo(chosenPage.connectionId)}
                 onAdminChange={(stayOnTopic) => {
                     //setActiveSelection({selection: {connectionId: activeSelection.selection.connectionId}, state: "connected"});
                 }}
